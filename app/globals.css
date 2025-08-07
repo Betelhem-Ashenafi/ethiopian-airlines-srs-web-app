@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* White background for light mode */
+    --foreground: 240 10% 3.9%; /* Dark text for light mode */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 240 5.9% 10%; /* Default primary for shadcn, can be overridden */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+
+    --radius: 0.5rem;
+
+    /* Ethiopian Airlines Brand Colors for light mode */
+    --et-green: 120 27% 37%; /* HSL for #517842 */
+    --et-gold: 45 100% 53%; /* HSL for #FFC107 */
+
+    /* Sidebar specific variables (from shadcn sidebar component) */
+    --sidebar-background: var(--et-green); /* Use ET Green for sidebar background */
+    --sidebar-foreground: var(--et-gold); /* Use ET Gold for sidebar text */
+    --sidebar-primary: var(--et-gold);
+    --sidebar-primary-foreground: var(--et-green);
+    --sidebar-accent: 48 100% 60%; /* Slightly lighter gold for accent */
+    --sidebar-accent-foreground: var(--et-green);
+    --sidebar-border: 48 100% 40%; /* Darker gold for border */
+    --sidebar-ring: var(--et-gold);
+  }
+
+  .dark {
+    --background: 240 10% 3.9%; /* Dark background for dark mode */
+    --foreground: 0 0% 98%; /* Light text for dark mode */
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+
+    /* Ethiopian Airlines Brand Colors for dark mode (can be same or adjusted) */
+    --et-green: 120 27% 37%; /* HSL for #517842 */
+    --et-gold: 45 100% 53%; /* HSL for #FFC107 */
+
+    /* Sidebar specific variables for dark mode */
+    --sidebar-background: var(--et-green); /* Use ET Green for sidebar background */
+    --sidebar-foreground: var(--et-gold); /* Use ET Gold for sidebar text */
+    --sidebar-primary: var(--et-gold);
+    --sidebar-primary-foreground: var(--et-green);
+    --sidebar-accent: 48 100% 60%; /* Slightly lighter gold for accent */
+    --sidebar-accent-foreground: var(--et-green);
+    --sidebar-border: 48 100% 40%; /* Darker gold for border */
+    --sidebar-ring: var(--et-gold);
+  }
+}
