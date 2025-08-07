@@ -49,11 +49,11 @@ export function AuthProvider({ children }: {children :ReactNode }) {
   useEffect(() => {
     // Redirect logic
     if (!isLoading) {
-      if (!user && pathname !== "/login" && pathname !== "/") {
-        // Allow access to "/" (cover page)
+      // Allow unauthenticated access to /login, /, and /forgot-password
+      if (!user && pathname !== "/login" && pathname !== "/" && pathname !== "/forgot-password") {
         router.push("/login")
-      } else if (user && (pathname === "/login" || pathname === "/")) {
-        // If logged in, redirect from login/cover
+      } else if (user && (pathname === "/login" || pathname === "/" || pathname === "/forgot-password")) {
+        // If logged in, redirect from login/cover/forgot-password
         router.push("/dashboard")
       }
     }
