@@ -128,11 +128,14 @@ export default function LoginPage() {
               )}
             </Button>
             <div className="text-center text-sm">
-              <Link href="#" className="underline text-et-green hover:text-green-700">
-                Forgot your password?
-              </Link>
+              {/* Place the link outside the form to avoid submit event interference */}
             </div>
           </form>
+          <div className="text-center text-sm mt-2">
+            <Link href="/forgot-password" className="underline text-et-green hover:text-green-700">
+              Forgot your password?
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
