@@ -91,7 +91,6 @@ export default function LoginPage() {
                 <SelectContent>
                   <SelectItem value="System Admin">System Admin</SelectItem>
                   <SelectItem value="Department Admin">Department Admin</SelectItem>
-                  <SelectItem value="Employee">Employee</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -111,9 +110,11 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                required
+                placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
+                style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
+                required
               />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
