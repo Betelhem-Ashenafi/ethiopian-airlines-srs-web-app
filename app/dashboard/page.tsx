@@ -85,9 +85,6 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{dashboardTotalReports}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {dashboardResolvedReports} resolved, {dashboardInProgressReports} in progress
-                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -102,12 +99,12 @@ export default function DashboardPage() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                  <CardTitle className="text-sm font-medium">In Progress</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{reports.length}</div> {/* Placeholder, ideally from user data */}
-                  <p className="text-xs text-muted-foreground">Total employees reporting</p>
+                  <div className="text-2xl font-bold">{dashboardInProgressReports}</div>
+                  <p className="text-xs text-muted-foreground">Total reports in progress</p>
                 </CardContent>
               </Card>
             </div>
@@ -118,8 +115,8 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* ReportsTable already handles department filtering based on user role */}
-                <ReportsTable />
+                {/* ReportsTable now only shows last 7 days in dashboard */}
+                <ReportsTable last7DaysOnly />
               </CardContent>
             </Card>
           </div>
