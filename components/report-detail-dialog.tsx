@@ -21,7 +21,7 @@ export default function ReportDetailDialog({ report, isOpen, onClose }: ReportDe
   const { user } = useAuth() // Get the current user
   const isEmployee = user?.role === "Employee" // Check if the user is an Employee
 
-  const [currentStatus, setCurrentStatus] = useState(report.status)
+  const [currentStatus, setCurrentStatus] = useState<"Open" | "In Progress" | "Resolved" | "Reject" | "On Hold">(report.status as "Open" | "In Progress" | "Resolved" | "Reject" | "On Hold")
   const [currentDepartment, setCurrentDepartment] = useState(report.aiDepartment)
   const [currentSeverity, setCurrentSeverity] = useState(report.aiSeverity)
   const [currentAssignedTo, setCurrentAssignedTo] = useState(report.assignedTo || "")
@@ -88,16 +88,18 @@ export default function ReportDetailDialog({ report, isOpen, onClose }: ReportDe
               <Label>Current Status</Label>
               <Select
                 value={currentStatus}
-                onValueChange={(value) => setCurrentStatus(value as "Submitted" | "In Progress" | "Resolved")}
+                onValueChange={(value) => setCurrentStatus(value as "Open" | "In Progress" | "Resolved" | "Reject" | "On Hold")}
                 disabled={isEmployee}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Submitted">Submitted</SelectItem>
+                  <SelectItem value="Open">Open</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
                   <SelectItem value="Resolved">Resolved</SelectItem>
+                  <SelectItem value="Reject">Reject</SelectItem>
+                  <SelectItem value="On Hold">On Hold</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -105,59 +107,66 @@ export default function ReportDetailDialog({ report, isOpen, onClose }: ReportDe
 
           <Separator />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>AI Assigned Department</Label>
-              <Select value={currentDepartment} onValueChange={setCurrentDepartment} disabled={isEmployee}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* Populate with actual departments from your system */}
-                  <SelectItem value="Facility Maintenance">Facility Maintenance</SelectItem>
-                  <SelectItem value="Electrical Maintenance">Electrical Maintenance</SelectItem>
-                  <SelectItem value="IT Support">IT Support</SelectItem>
-                  <SelectItem value="Plumbing">Plumbing</SelectItem>
-                  <SelectItem value="Safety">Safety</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Override AI classification if needed.</p>
+          {/* Only show AI Assigned Department and Severity for System Admin */}
+          {(user?.role === "System Admin") && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>AI Assigned Department</Label>
+                <Select value={currentDepartment} onValueChange={setCurrentDepartment} disabled={isEmployee}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Populate with actual departments from your system */}
+                    <SelectItem value="Facility Maintenance">Facility Maintenance</SelectItem>
+                    <SelectItem value="Electrical Maintenance">Electrical Maintenance</SelectItem>
+                    <SelectItem value="IT Support">IT Support</SelectItem>
+                    <SelectItem value="Plumbing">Plumbing</SelectItem>
+                    <SelectItem value="Safety">Safety</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Override AI classification if needed.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>AI Assigned Severity</Label>
+                <Select
+                  value={currentSeverity}
+                  onValueChange={(value) => setCurrentSeverity(value as "Low" | "Moderate" | "High" | "Critical")}
+                  disabled={isEmployee}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Moderate">Moderate</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Override AI classification if needed.</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>AI Assigned Severity</Label>
-              <Select
-                value={currentSeverity}
-                onValueChange={(value) => setCurrentSeverity(value as "Low" | "Moderate" | "High" | "Critical")}
-                disabled={isEmployee}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Severity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Moderate">Moderate</SelectItem>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Override AI classification if needed.</p>
-            </div>
-          </div>
+          )}
 
           <div className="space-y-2">
-            <Label>Assign To</Label>
-            <Select value={currentAssignedTo} onValueChange={setCurrentAssignedTo} disabled={isEmployee}>
-              <SelectTrigger>
-                <SelectValue placeholder="Assign to team/user" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableAssignees.map((assignee) => (
-                  <SelectItem key={assignee} value={assignee}>
-                    {assignee}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Assigned To</Label>
+            {user?.role === "System Admin" ? (
+              <Select value={currentAssignedTo} onValueChange={setCurrentAssignedTo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Assign to team/user" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableAssignees.map((assignee) => (
+                    <SelectItem key={assignee} value={assignee}>
+                      {assignee}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-muted-foreground">{report.assignedTo || "it support"}</p>
+            )}
           </div>
 
           <Separator />
@@ -188,6 +197,7 @@ export default function ReportDetailDialog({ report, isOpen, onClose }: ReportDe
               className="mt-2"
               disabled={isEmployee}
             />
+            {/* ...existing code... */}
           </div>
         </div>
         <div className="flex justify-end gap-2">
@@ -196,6 +206,17 @@ export default function ReportDetailDialog({ report, isOpen, onClose }: ReportDe
           </Button>
           <Button onClick={handleSave} disabled={isEmployee}>
             Save Changes
+          </Button>
+          <Button
+            onClick={() => {
+              if (newComment.trim()) {
+                setNewComment("");
+                alert("Comment sent!");
+              }
+            }}
+            disabled={isEmployee || !newComment.trim()}
+          >
+            Send
           </Button>
         </div>
       </DialogContent>
