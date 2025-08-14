@@ -13,7 +13,7 @@ export type Report = {
   deviceInfo?: string
   aiDepartment: string
   aiSeverity: "Low" | "Moderate" | "High" | "Critical"
-  status: "Submitted" | "In Progress" | "Resolved"
+  status: "Open" | "In Progress" | "Resolved" | "Reject" | "On Hold"
   assignedTo?: string
   comments: { author: string; timestamp: string; text: string }[]
 }
@@ -24,7 +24,7 @@ export type User = {
   fullName: string
   email: string
   role: "System Admin" | "Department Admin" | "Employee"
-  status: "Active"
+  status: "Active" | "Inactive"
   password?: string // Only for simulation, not in real production data
   department?: string // New: Department for Department Admins
 }
@@ -69,6 +69,62 @@ export const navItems: NavItem[] = [
 
 export const reports: Report[] = [
   {
+    id: "ET-2025-08-12-TEST1",
+    title: "Test Report Today",
+    description: "This report is for testing dashboard filtering (today).",
+    imageUrl: "/placeholder.svg?height=300&width=500",
+    gpsCoordinates: "9.0100, 38.7700",
+    selectedLocation: "Test Location",
+    timestamp: "2025-08-12T08:00:00Z",
+    submittedBy: "Test User",
+    aiDepartment: "IT Support",
+    aiSeverity: "Low",
+    status: "Open",
+    comments: [],
+  },
+  {
+    id: "ET-2025-08-10-TEST2",
+    title: "Test Report 2 Days Ago",
+    description: "This report is for testing dashboard filtering (2 days ago).",
+    imageUrl: "/placeholder.svg?height=300&width=500",
+    gpsCoordinates: "9.0110, 38.7710",
+    selectedLocation: "Test Location",
+    timestamp: "2025-08-10T10:00:00Z",
+    submittedBy: "Test User",
+    aiDepartment: "Facility Maintenance",
+    aiSeverity: "Moderate",
+    status: "In Progress",
+    comments: [],
+  },
+  {
+    id: "ET-2025-08-04-TEST3",
+    title: "Test Report 8 Days Ago",
+    description: "This report is for testing dashboard filtering (8 days ago, should NOT show in dashboard).",
+    imageUrl: "/placeholder.svg?height=300&width=500",
+    gpsCoordinates: "9.0120, 38.7720",
+    selectedLocation: "Test Location",
+    timestamp: "2025-08-04T12:00:00Z",
+    submittedBy: "Test User",
+    aiDepartment: "Electrical Maintenance",
+    aiSeverity: "High",
+    status: "Resolved",
+    comments: [],
+  },
+  {
+    id: "ET-2025-07-23-TEST4",
+    title: "Test Report 20 Days Ago",
+    description: "This report is for testing dashboard filtering (20 days ago, should NOT show in dashboard).",
+    imageUrl: "/placeholder.svg?height=300&width=500",
+    gpsCoordinates: "9.0130, 38.7730",
+    selectedLocation: "Test Location",
+    timestamp: "2025-07-23T09:00:00Z",
+    submittedBy: "Test User",
+    aiDepartment: "IT Support",
+    aiSeverity: "Critical",
+    status: "Open",
+    comments: [],
+  },
+  {
     id: "ET-2025-07-17-001",
     title: "Large Crack Near Gate 12",
     description:
@@ -102,7 +158,7 @@ export const reports: Report[] = [
     submittedBy: "Dawit (EMP-002)",
     aiDepartment: "Electrical Maintenance",
     aiSeverity: "Critical",
-    status: "Submitted",
+    status: "Open",
     comments: [],
   },
   {
@@ -143,7 +199,7 @@ export const reports: Report[] = [
   submittedBy: "Birhanu (EMP-006)",
   aiDepartment: "Facility Maintenance",
   aiSeverity: "High", // <-- This makes "High" show up in the dropdown!
-  status: "Submitted",
+  status: "Open",
   assignedTo: "Maintenance Team Gamma",
   comments: [
     {
