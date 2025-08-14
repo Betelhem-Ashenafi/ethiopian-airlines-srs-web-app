@@ -132,9 +132,11 @@ export default function AnalyticsSection() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Submitted">Submitted</SelectItem>
+              <SelectItem value="Open">Open</SelectItem>
               <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Resolved">Resolved</SelectItem>
+              <SelectItem value="Reject">Reject</SelectItem>
+              <SelectItem value="On Hold">On Hold</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={() => handleExport("excel")} variant="outline">
@@ -184,30 +186,33 @@ export default function AnalyticsSection() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Reports by Department</CardTitle>
-            <CardDescription>Distribution of issues across departments.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] flex items-center justify-center bg-muted rounded-md text-muted-foreground">
-              {Object.keys(reportsByDepartment).length > 0 ? (
-                <div className="text-center">
-                  <p>Placeholder for a Bar Chart or Pie Chart showing:</p>
-                  <ul className="list-disc list-inside mt-2">
-                    {Object.entries(reportsByDepartment).map(([dept, count]) => (
-                      <li key={dept}>
-                        {dept}: {count}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                "No data for this filter."
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Only show Reports by Department for System Admin */}
+        {user?.role === "System Admin" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports by Department</CardTitle>
+              <CardDescription>Distribution of issues across departments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px] flex items-center justify-center bg-muted rounded-md text-muted-foreground">
+                {Object.keys(reportsByDepartment).length > 0 ? (
+                  <div className="text-center">
+                    <p>Placeholder for a Bar Chart or Pie Chart showing:</p>
+                    <ul className="list-disc list-inside mt-2">
+                      {Object.entries(reportsByDepartment).map(([dept, count]) => (
+                        <li key={dept}>
+                          {dept}: {count}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  "No data for this filter."
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Reports by Severity</CardTitle>
