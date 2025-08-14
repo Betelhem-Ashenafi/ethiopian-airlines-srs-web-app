@@ -1,17 +1,19 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider" // Ensure this import is correct
-import { AuthProvider } from "@/components/auth-provider"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] })
+import "../styles/globals.css"; // Only one global CSS import
+
+import { ThemeProvider } from "@/components/theme-provider"; // Ensure this path is correct
+import { AuthProvider } from "@/components/auth-provider";   // Ensure this path is correct
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Ethiopian Airlines Defect Management Portal",
   description: "Employee Defect & Issue Reporting System for Ethiopian Airlines",
   generator: "fiya ",
-}
+};
 
 export default function RootLayout({
   children,
@@ -24,5 +26,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
