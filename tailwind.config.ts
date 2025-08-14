@@ -3,11 +3,10 @@ import type { Config } from "tailwindcss"
 const config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{ts,tsx,js,jsx}",
+    "./components/**/*.{ts,tsx,js,jsx}",
+    "./app/**/*.{ts,tsx,js,jsx}",
+    "./styles/globals.css",
   ],
   prefix: "",
   theme: {
@@ -53,9 +52,9 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Ethiopian Airlines Brand Colors
-        "et-green": "hsl(var(--et-green))",
-        "et-gold": "hsl(var(--et-gold))",
+  // Ethiopian Airlines Brand Colors
+  "et-green": "hsl(var(--et-green))",
+  "et-gold": "hsl(var(--et-gold))",
       },
       borderRadius: {
         lg: "var(--radius)",
