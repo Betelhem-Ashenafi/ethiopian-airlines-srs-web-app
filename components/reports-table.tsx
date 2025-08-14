@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -13,8 +13,9 @@ import { format } from "date-fns"
 import { type Report, reports } from "@/lib/data"
 import ReportDetailDialog from "./report-detail-dialog"
 import { useAuth } from "@/components/auth-provider" // Import useAuth
+import { useSearchParams } from "next/navigation"
 
-export default function ReportsTable() {
+export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?: boolean }) {
   const { user } = useAuth() // Get the current user
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -23,12 +24,22 @@ export default function ReportsTable() {
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to?: Date | undefined } | undefined>(undefined)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const searchParams = useSearchParams()
+  const reportId = searchParams.get("id")
 
   // Determine if the current user is a Department Admin and get their department
   const isDepartmentAdmin = user?.role === "Department Admin"
   const userDepartment = user?.department
 
-  const filteredReports = reports.filter((report) => {
+  // If last7DaysOnly, filter reports to last 7 days
+  let reportsToShow = reports;
+  if (last7DaysOnly) {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    reportsToShow = reports.filter((report) => new Date(report.timestamp) >= sevenDaysAgo);
+  }
+
+  const filteredReports = reportsToShow.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,6 +70,16 @@ export default function ReportsTable() {
     setIsDetailDialogOpen(true)
   }
 
+  useEffect(() => {
+    if (reportId) {
+      const found = filteredReports.find((r) => r.id === reportId)
+      if (found) {
+        setSelectedReport(found)
+        setIsDetailDialogOpen(true)
+      }
+    }
+  }, [reportId, filteredReports])
+
   return (
     <div className="grid gap-4">
       <div className="flex flex-col md:flex-row gap-4">
@@ -79,9 +100,11 @@ export default function ReportsTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Submitted">Submitted</SelectItem>
+              <SelectItem value="Open">Open</SelectItem>
               <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Resolved">Resolved</SelectItem>
+              <SelectItem value="Reject">Reject</SelectItem>
+              <SelectItem value="On Hold">On Hold</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -178,7 +201,13 @@ export default function ReportsTable() {
                           ? "default"
                           : report.status === "In Progress"
                             ? "secondary"
-                            : "outline"
+                            : report.status === "Open"
+                              ? "secondary"
+                              : report.status === "Reject"
+                                ? "destructive"
+                                : report.status === "On Hold"
+                                  ? "outline"
+                                  : "outline"
                       }
                     >
                       {report.status}
