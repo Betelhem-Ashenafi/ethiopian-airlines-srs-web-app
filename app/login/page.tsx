@@ -13,48 +13,38 @@ import { Loader2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import Image from "next/image"
-import type { User } from "@/lib/data" // Import User type
+import type { User } from "@/lib/data" 
 
 export default function LoginPage() {
   const [employeeId, setEmployeeId] = useState("")
   const [password, setPassword] = useState("")
-  const [selectedRole, setSelectedRole] = useState<string>("") // State for selected role
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const { login: authLogin } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsPending(true)
+    e.preventDefault();
+    if (isPending) return; // Prevent double submit
+    setError(null);
+    setIsPending(true);
 
-    // Basic client-side validation for role selection
-    if (!selectedRole) {
-      setError("Please select your role.")
-      setIsPending(false)
-      return
-    }
+    const formData = new FormData();
+    formData.append("employeeId", employeeId);
+    formData.append("password", password);
 
-    const formData = new FormData()
-    formData.append("employeeId", employeeId)
-    formData.append("password", password)
-    formData.append("role", selectedRole) // Include role in form data  
-
-    const result = await login(formData)
+    const result = await login(formData);
 
     if (result.success && result.user) {
-      // In a real app, you might verify if the selectedRole matches result.user.role
-      // For this demo, we trust the backend's returned role.
-      authLogin(result.user) // Update auth context
+      authLogin(result.user);
     } else {
-      setError(result.error || "An unexpected error occurred.")
+      setError(result.error || "An unexpected error occurred.");
     }
-    setIsPending(false)
+    setIsPending(false);
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-et-green p-4">
-      {/* Subtle background pattern for visual interest, matching the cover page */}
+      
       <div
         className="absolute inset-0 opacity-10"
         style={{
@@ -80,20 +70,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2 mb-4">
-              {" "}
-              {/* Added mb-4 here */}
-              <Label htmlFor="role">Your Role</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="System Admin">System Admin</SelectItem>
-                  <SelectItem value="Department Admin">Department Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Role dropdown removed. Only ID and password required. */}
             <div className="grid gap-2">
               <Label htmlFor="employeeId">Employee ID</Label>
               <Input
@@ -129,7 +106,7 @@ export default function LoginPage() {
               )}
             </Button>
             <div className="text-center text-sm">
-              {/* Place the link outside the form to avoid submit event interference */}
+              
             </div>
           </form>
           <div className="text-center text-sm mt-2">
