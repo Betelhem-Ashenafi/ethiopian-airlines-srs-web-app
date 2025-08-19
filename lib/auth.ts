@@ -6,21 +6,23 @@ import { users, type User } from "./data"
 export async function login(
   formData: FormData,
 ): Promise<{ success: boolean; user?: Omit<User, "password">; error?: string }> {
-  const employeeId = formData.get("employeeId") as string
-  const password = formData.get("password") as string
-  const role = formData.get("role") as User["role"]
+  const employeeId = formData.get("employeeId") as string;
+  const password = formData.get("password") as string;
 
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
-  const user = users.find((u) => u.employeeId === employeeId && u.password === password && u.status === "Active"&& u.role===role )
+  // Only check employeeId and password, ignore role
+  const user = users.find(
+    (u) => u.employeeId === employeeId && u.password === password && u.status === "Active"
+  );
 
   if (user) {
     // Return user data without the password
-    const { password, ...userWithoutPassword } = user
-    return { success: true, user: userWithoutPassword }
+    const { password, ...userWithoutPassword } = user;
+    return { success: true, user: userWithoutPassword };
   } else {
-    return { success: false, error: "Invalid Employee ID or password." }
+    return { success: false, error: "Invalid Employee ID or password." };
   }
 }
 
