@@ -1,0 +1,96 @@
+// Backup of cleaned data.ts
+import type { LucideIcon } from "lucide-react"
+import { Home, ListChecks, BarChart, Users, Settings } from "lucide-react"
+
+export type Comment = { author: string; timestamp: string; text: string }
+
+export type Report = {
+  id: string
+  title: string
+  description: string
+  imageUrl?: string
+  gpsCoordinates?: string
+  selectedLocation?: string
+  timestamp: string
+  submittedBy: string
+  submittedByName?: string
+  deviceInfo?: string
+  departmentName?: string
+  severityName?: string
+  statusName?: string
+  locationName?: string
+  statusId?: string
+  severityId?: string
+  departmentId?: string
+  syncStatus?: string
+  assignedTo?: string
+  comments?: Comment[]
+}
+
+export type User = {
+  id: string
+  employeeID?: string
+  fullName: string
+  email?: string
+  role: "System Admin" | "Department Admin" | "Employee"
+  status?: "Active" | "Inactive"
+  password?: string
+  department?: string
+}
+
+export type NavItem = {
+  title: string
+  href: string
+  icon: LucideIcon
+  roles?: User["role"][]
+}
+
+export const navItems: NavItem[] = [
+  { title: "Dashboard", href: "/dashboard", icon: Home },
+  { title: "Reports", href: "/dashboard?tab=reports", icon: ListChecks, roles: ["System Admin", "Department Admin"] },
+  { title: "Analytics", href: "/dashboard?tab=analytics", icon: BarChart, roles: ["System Admin", "Department Admin"] },
+  { title: "User Management", href: "/dashboard?tab=users", icon: Users, roles: ["System Admin"] },
+  { title: "Settings", href: "/dashboard?tab=settings", icon: Settings },
+]
+
+export const sampleReports: Report[] = [
+  {
+    id: "48217128-d567-4fe0-9926-cb9812494b94",
+    title: "fire",
+    description: "the office it burns",
+    imageUrl: "http://svdcbas02:8212//images/dea8e270-1725-4498-b872-0881bd117e44.jpg",
+    gpsCoordinates: "90,180",
+    selectedLocation: "Terminal A",
+    timestamp: "2025-09-05T10:55:18.3430291",
+    submittedBy: "u200",
+    submittedByName: "Tewahido Haimanot",
+    departmentName: "Safety",
+    severityName: "Critical",
+    statusName: "In Progress",
+    locationName: "Terminal A",
+    syncStatus: "Synced",
+    comments: [],
+  },
+  {
+    id: "b75ba377-e6a5-44d4-bc77-e4ebc0e189135",
+    title: "Broken Streetlight",
+    description: "The streetlight on Main St. near the park is not functioning.",
+    imageUrl: "http://svdcbas02:8212//images/16b3674c-e072-462f-b657-933ebc2765b5.jpg",
+    gpsCoordinates: "90,180",
+    selectedLocation: "Headquarters",
+    timestamp: "2025-09-05T10:23:42.3509582",
+    submittedBy: "u201",
+    submittedByName: "Lemma Dagne",
+    departmentName: "Safety",
+    severityName: "High",
+    statusName: "Reopened",
+    locationName: "Headquarters",
+    syncStatus: "Synced",
+    comments: [],
+  },
+]
+
+export const users: User[] = [
+  { id: 'u200', fullName: 'Tewahido Haimanot', role: 'Employee' },
+  { id: 'u201', fullName: 'Lemma Dagne', role: 'Employee' },
+]

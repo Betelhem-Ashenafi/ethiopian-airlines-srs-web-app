@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -10,64 +10,178 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
-import { type Report, reports } from "@/lib/data"
+import type { Report } from "../lib/data"
+import { fetchReports } from "@/lib/reports"
+import { fetchDepartmentsDropdown, fetchStatusDropdown, fetchSeveritiesDropdown } from "@/lib/dropdowns"
 import ReportDetailDialog from "./report-detail-dialog"
-import { useAuth } from "@/components/auth-provider" // Import useAuth
+import { useAuth } from "@/components/auth-provider"
 import { useSearchParams } from "next/navigation"
+import React from "react"
 
-export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?: boolean }) {
-  const { user } = useAuth() // Get the current user
+type ReportsTableProps = {
+  reports?: Report[];
+  last7DaysOnly?: boolean;
+};
+
+const ReportsTable: React.FC<ReportsTableProps> = ({ reports: externalReports, last7DaysOnly = false }) => {
+  const { user } = useAuth();
+  const [reports, setReports] = useState<Report[]>(externalReports || [])
+  const [loading, setLoading] = useState(!externalReports)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [departmentFilter, setDepartmentFilter] = useState("all") // This will be overridden for Department Admins
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [departmentFilter, setDepartmentFilter] = useState("all")
   const [severityFilter, setSeverityFilter] = useState("all")
+  const [departmentOptions, setDepartmentOptions] = useState<{id:string,name:string}[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{id:string,name:string}[]>([]);
+  const [severities, setSeverities] = useState<{id:string,name:string}[]>([]);
+  const [departmentMap, setDepartmentMap] = useState<Record<string,string>>({});
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to?: Date | undefined } | undefined>(undefined)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const searchParams = useSearchParams()
-  const reportId = searchParams.get("id")
+  const reportId = searchParams?.get("id")
 
-  // Determine if the current user is a Department Admin and get their department
+  // Fetch dropdowns (depends on user so Dept Admin sees only their own department)
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+
+    async function loadDropdowns() {
+      try {
+        console.log("[reports-table] loading dropdowns for user:", user);
+        const [depts, statusesData, sevs] = await Promise.all([
+          fetchDepartmentsDropdown(user ?? undefined),
+          fetchStatusDropdown(),
+          fetchSeveritiesDropdown()
+        ]);
+
+        if (!mounted) return;
+
+        console.log("DEBUG departments", depts, "statuses", statusesData, "severities", sevs);
+        setDepartmentOptions(depts || []);
+        setStatusOptions(statusesData || []);
+        setSeverities(sevs || []);
+
+        const map = Object.fromEntries((depts || []).map(d => [String(d.id), d.name]));
+        setDepartmentMap(map);
+
+        // Dept Admin: set initial department filter (prefer id then normalized name)
+        if (user?.role === "Department Admin") {
+          const uid = String((user as any).departmentId ?? "");
+          if (uid && map[uid]) {
+            setDepartmentFilter(uid);
+          } else if (user?.department) {
+            const norm = (s?: string) => (s || "").trim().toLowerCase();
+            const found = (depts || []).find(d => norm(d.name) === norm(user.department));
+            if (found) setDepartmentFilter(String(found.id));
+          }
+        }
+      } catch (err) {
+        console.error("[reports-table] loadDropdowns error:", err);
+        setDepartmentOptions([]);
+        setStatusOptions([]);
+        setSeverities([]);
+      }
+    }
+
+    loadDropdowns();
+    return () => { mounted = false; };
+  }, [user]);
+
+  // Fetch reports (depends on user)
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    async function loadReports() {
+      try {
+        const reportsData = await fetchReports(
+          user && user.role === "Department Admin" ? user.departmentId : undefined
+        );
+        setReports(reportsData || []);
+      } catch (err: any) {
+        setError(err.message || String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadReports();
+  }, [user, externalReports]);
+
+  // Lock department filter for Department Admins using their departmentId
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === "Department Admin" && user.departmentId) {
+      setDepartmentFilter(String(user.departmentId));
+    }
+  }, [user]);
+
   const isDepartmentAdmin = user?.role === "Department Admin"
-  const userDepartment = user?.department
 
-  // If last7DaysOnly, filter reports to last 7 days
   let reportsToShow = reports;
   if (last7DaysOnly) {
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    reportsToShow = reports.filter((report) => new Date(report.timestamp) >= sevenDaysAgo);
+    const sevenDaysAgo = new Date(now.getTime() - 7* 24 * 60 * 60 * 1000);
+    console.log("Filtering reports from:", sevenDaysAgo, "to now:", now);
+    reportsToShow = reports.filter((report) => {
+      if (!report.timestamp) return false;
+      return new Date(report.timestamp) >= sevenDaysAgo;
+    });
   }
+
+  // Build quick lookup maps from dropdowns so we can accept either id or name as the selected value
+  const statusMap = Object.fromEntries(statusOptions.map(s => [String(s.id), s.name]));
+  const departmentMapLookup = Object.fromEntries(departmentOptions.map(d => [String(d.id), d.name]));
+  const severityMap = Object.fromEntries(severities.map(s => [String(s.id), s.name]));
 
   const filteredReports = reportsToShow.filter((report) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.submittedBy.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || report.status === statusFilter
-    const matchesSeverity = severityFilter === "all" || report.aiSeverity === severityFilter
+      (report.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (report.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (report.submittedByName || '').toLowerCase().includes(searchTerm.toLowerCase())
+
+    const selectedStatusName = statusMap[statusFilter] ?? statusFilter
+    const selectedSeverityName = severityMap[severityFilter] ?? severityFilter
+
+    const matchesStatus =
+      statusFilter === "all" ||
+      String((report as any).statusId) === String(statusFilter) ||
+      report.statusName === selectedStatusName
+
+    const matchesSeverity =
+      severityFilter === "all" ||
+      String((report as any).severityId) === String(severityFilter) ||
+      report.severityName === selectedSeverityName
+
     const matchesDate =
       !dateRange?.from ||
       !dateRange.to ||
       (new Date(report.timestamp) >= dateRange.from && new Date(report.timestamp) <= dateRange.to)
 
-    // Apply department filter based on user role
-    let matchesDepartment = true
-    if (isDepartmentAdmin && userDepartment) {
-      matchesDepartment = report.aiDepartment === userDepartment
+    // Department filter (Department Admin locked to their departmentId)
+    let matchesDepartment = true;
+    if (user?.role === "Department Admin" && user.departmentId) {
+      matchesDepartment =
+        String(report.departmentId) === String(user.departmentId);
     } else if (departmentFilter !== "all") {
-      matchesDepartment = report.aiDepartment === departmentFilter
+      matchesDepartment =
+        String(report.departmentId) === String(departmentFilter);
     }
 
     return matchesSearch && matchesStatus && matchesDepartment && matchesSeverity && matchesDate
   })
 
-  const allDepartments = Array.from(new Set(reports.map((r) => r.aiDepartment)))
-  const allSeverities = Array.from(new Set(reports.map((r) => r.aiSeverity)))
-
   const handleViewReport = (report: Report) => {
     setSelectedReport(report)
     setIsDetailDialogOpen(true)
+  }
+
+  const handleReportUpdated = (changes: Partial<Report> & { id: string }) => {
+    setReports(prev => prev.map(r => r.id === changes.id ? { ...r, ...changes } as Report : r));
+    if (selectedReport && selectedReport.id === changes.id) {
+      setSelectedReport(prev => prev ? { ...prev, ...changes } as Report : prev);
+    }
   }
 
   useEffect(() => {
@@ -79,6 +193,9 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
       }
     }
   }, [reportId, filteredReports])
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
 
   return (
     <div className="grid gap-4">
@@ -100,34 +217,32 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Open">Open</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Resolved">Resolved</SelectItem>
-              <SelectItem value="Reject">Reject</SelectItem>
-              <SelectItem value="On Hold">On Hold</SelectItem>
+              {statusOptions.map((status) => (
+                <SelectItem key={String(status.id)} value={String(status.id)}>{status.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select
-            value={isDepartmentAdmin && userDepartment ? userDepartment : departmentFilter}
+            value={departmentFilter}
             onValueChange={setDepartmentFilter}
-            disabled={isDepartmentAdmin && !!userDepartment} // Disable if Department Admin
+            disabled={isDepartmentAdmin}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by Department" />
             </SelectTrigger>
             <SelectContent>
-              {isDepartmentAdmin && userDepartment ? (
-                <SelectItem value={userDepartment}>{userDepartment}</SelectItem>
-              ) : (
-                <>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {allDepartments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </>
-              )}
+              <SelectItem value="all">All Departments</SelectItem>
+              {departmentOptions.map((dept, i) => {
+                const raw = dept.id ?? dept.name ?? `dept-${i}`;
+                const value = String(raw).trim() || `dept-${i}`;
+                const key = `${value}-${i}`;
+                const label = dept.name || departmentMap[String(dept.id ?? value)] || `Department ${i + 1}`;
+                return (
+                  <SelectItem key={key} value={value}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
@@ -136,10 +251,8 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Severities</SelectItem>
-              {allSeverities.map((sev) => (
-                <SelectItem key={sev} value={sev}>
-                  {sev}
-                </SelectItem>
+              {severities.map((sev) => (
+                <SelectItem key={String(sev.id)} value={String(sev.id)}>{sev.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -171,12 +284,10 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Report ID</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Severity</TableHead>
-              <TableHead>Location</TableHead>
               <TableHead>Timestamp</TableHead>
               <TableHead>Submitted By</TableHead>
               <TableHead className="w-[80px]">Actions</TableHead>
@@ -185,51 +296,25 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
           <TableBody>
             {filteredReports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-4 text-muted-foreground">
                   No reports found matching your criteria.
                 </TableCell>
               </TableRow>
             ) : (
               filteredReports.map((report) => (
                 <TableRow key={report.id}>
-                  <TableCell className="font-medium">{report.id}</TableCell>
                   <TableCell>{report.title}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        report.status === "Resolved"
-                          ? "default"
-                          : report.status === "In Progress"
-                            ? "secondary"
-                            : report.status === "Open"
-                              ? "secondary"
-                              : report.status === "Reject"
-                                ? "destructive"
-                                : report.status === "On Hold"
-                                  ? "outline"
-                                  : "outline"
-                      }
-                    >
-                      {report.status}
+                    <Badge variant="outline">
+                      {report.statusName}
                     </Badge>
                   </TableCell>
-                  <TableCell>{report.aiDepartment}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        report.aiSeverity === "Critical"
-                          ? "destructive"
-                          : report.aiSeverity === "Moderate"
-                            ? "default"
-                            : "outline"
-                      }
-                    >
-                      {report.aiSeverity}
-                    </Badge>
+                    {report.departmentName}
                   </TableCell>
-                  <TableCell>{report.selectedLocation}</TableCell>
+                  <TableCell>{report.severityName}</TableCell>
                   <TableCell>{new Date(report.timestamp).toLocaleString()}</TableCell>
-                  <TableCell>{report.submittedBy}</TableCell>
+                  <TableCell>{report.submittedByName}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -242,7 +327,8 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            )
+            }
           </TableBody>
         </Table>
       </div>
@@ -251,8 +337,11 @@ export default function ReportsTable({ last7DaysOnly = false }: { last7DaysOnly?
           report={selectedReport}
           isOpen={isDetailDialogOpen}
           onClose={() => setIsDetailDialogOpen(false)}
+          onUpdate={handleReportUpdated}
         />
       )}
     </div>
   )
 }
+
+export default ReportsTable;

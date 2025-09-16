@@ -1,5 +1,5 @@
-import { CheckCheck } from "lucide-react"
+import { ListChecks as LucideListChecks } from "lucide-react"
 
 export default function ListChecks(props: any) {
-  return <CheckCheck {...props} />
+  return <LucideListChecks {...props} />
 }

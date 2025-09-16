@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Removed Tailwind directives due to unknown at-rule error. 
+   Ensure Tailwind is installed and configured if you want to use these. */
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -43,6 +46,10 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Ethiopian Airlines Brand Colors */
+    --et-green: 97 61% 34%;   /* Example: Ethiopian green */
+    --et-gold: 45 90% 55%;    /* Example: Ethiopian gold */
+    --et-red: 0 85% 45%;      /* Example: Ethiopian red */
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -77,6 +84,10 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Ethiopian Airlines Brand Colors */
+    --et-green: 97 61% 34%;
+    --et-gold: 45 90% 55%;
+    --et-red: 0 85% 45%;
   }
 }
 

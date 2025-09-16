@@ -1,255 +1,213 @@
 "use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
-import { reports } from "@/lib/data"
-import ListChecks from "@/components/ListChecks" // Declare the ListChecks variable
-import { useAuth } from "@/components/auth-provider" // Import useAuth
+import { Button } from "@/components/ui/button" // (button kept if needed for future actions)
+import { FileDown, FileSpreadsheet } from "lucide-react"
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, LineChart, Line } from "recharts"
+import type { Report } from "@/lib/data"
+import { fetchReports } from "@/lib/reports"
+import ListChecks from "@/components/ListChecks"
+import ReportsTable from "@/components/reports-table"
+import { useAuth } from "@/components/auth-provider"
+import { fetchStatusDropdown, fetchDepartmentsDropdown, fetchSeveritiesDropdown } from "@/lib/dropdowns"
+// Accept reports as a prop for live data
+// If not provided, fallback to static
+type AnalyticsSectionProps = {
+  reports?: Report[];
+};
+function AnalyticsSection({ reports: externalReports }: AnalyticsSectionProps) {
+  const { user } = useAuth()
+  const [chartType, setChartType] = useState("bar") // bar, pie, line
+  const [allReports, setAllReports] = useState<Report[]>(externalReports || [])
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [departmentScope, setDepartmentScope] = useState<string>('all')
 
-export default function AnalyticsSection() {
-  const { user } = useAuth() // Get the current user
-  const [timeframe, setTimeframe] = useState("all") // all, last_7_days, last_30_days, last_90_days
-  const [departmentFilter, setDepartmentFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-
-  // Determine if the current user is a Department Admin and get their department
-  const isDepartmentAdmin = user?.role === "Department Admin"
-  const userDepartment = user?.department
-
-  const getFilteredReports = () => {
-    let filtered = reports
-
-    // Apply timeframe filter (simplified for demo)
-    const now = new Date()
-    if (timeframe === "last_7_days") {
-      const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7))
-      filtered = filtered.filter((r) => new Date(r.timestamp) >= sevenDaysAgo)
-    } else if (timeframe === "last_30_days") {
-      const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30))
-      filtered = filtered.filter((r) => new Date(r.timestamp) >= thirtyDaysAgo)
-    } else if (timeframe === "last_90_days") {
-      const ninetyDaysAgo = new Date(now.setDate(now.getDate() - 90))
-      filtered = filtered.filter((r) => new Date(r.timestamp) >= ninetyDaysAgo)
+  // If department admin restrict to their department only (remove global view)
+  useEffect(() => {
+    async function maybeFetchAll() {
+      if (!user) return
+      const isDeptAdmin = user.role === 'Department Admin'
+      if (isDeptAdmin) {
+        setDepartmentScope(user.department || 'all')
+      }
     }
+    maybeFetchAll()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
-    // Apply department filter based on user role
-    if (isDepartmentAdmin && userDepartment) {
-      filtered = filtered.filter((r) => r.aiDepartment === userDepartment)
-    } else if (departmentFilter !== "all") {
-      filtered = filtered.filter((r) => r.aiDepartment === departmentFilter)
-    }
+  // include external reports updates
+  useEffect(() => {
+    if (externalReports && externalReports.length) setAllReports(externalReports)
+  }, [externalReports])
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((r) => r.status === statusFilter)
+  const reports = allReports
+
+  // Helpers to normalize labels (trim, collapse spaces, Title Case)
+  const titleCase = (s: string) => s.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const norm = (s: string | undefined) => titleCase((s || 'Unknown').replace(/\s+/g,' ').trim());
+
+  // Chart data prep with normalization so 'inprogress', 'In Progress', 'IN PROGRESS' unify
+  // Apply department scope (charts can still show distribution for 'all')
+  const scopedReports = (user?.role === 'Department Admin' && user?.department)
+    ? reports.filter(r => (r.departmentName || r.aiDepartment) === user.department)
+    : (departmentScope === 'all' ? reports : reports.filter(r => (r.departmentName || r.aiDepartment) === departmentScope))
+
+  const reportsByDepartment = scopedReports.reduce((acc, report) => {
+    const dept = norm(report.departmentName || report.aiDepartment);
+    acc[dept] = (acc[dept] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  const reportsBySeverity = scopedReports.reduce((acc, report) => {
+    const sev = norm(report.aiSeverity as string);
+    acc[sev] = (acc[sev] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  const reportsByStatus = scopedReports.reduce((acc, report) => {
+    const status = norm(report.statusName || report.status);
+    acc[status] = (acc[status] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  // Chart rendering helper
+  function renderChart(type: string, data: any[], dataKey: string, labelKey: string, color: string) {
+    if (type === "bar") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data} margin={{ bottom: 60, left: 8, right: 8, top: 10 }}>
+            <XAxis
+              dataKey={labelKey}
+              interval={0}
+              minTickGap={0}
+              tick={{ fontSize: 11 }}
+              angle={-30}
+              textAnchor="end"
+              height={50}
+            />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey={dataKey} fill={color} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
     }
-    return filtered
+    if (type === "pie") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie data={data} dataKey={dataKey} nameKey={labelKey} cx="50%" cy="50%" outerRadius={100} fill={color} label />
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      );
+    }
+    if (type === "line") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ bottom: 60, left: 8, right: 8, top: 10 }}>
+            <XAxis
+              dataKey={labelKey}
+              interval={0}
+              minTickGap={0}
+              tick={{ fontSize: 11 }}
+              angle={-30}
+              textAnchor="end"
+              height={50}
+            />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey={dataKey} stroke={color} />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
   }
 
-  const filteredReports = getFilteredReports()
+  // Chart data arrays
+  const statusChartData = Object.entries(reportsByStatus).map(([status, count]) => ({ status, count }));
+  const departmentChartData = Object.entries(reportsByDepartment).map(([department, count]) => ({ department, count }));
+  const severityChartData = Object.entries(reportsBySeverity).map(([severity, count]) => ({ severity, count }));
 
-  // --- Data for Charts (simplified for demo, in real app use charting library) ---
-  const reportsByDepartment = filteredReports.reduce(
-    (acc, report) => {
-      acc[report.aiDepartment] = (acc[report.aiDepartment] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
+  // Brand colors
+  const etGreen = 'hsl(var(--et-green))';
+  const etGold = 'hsl(var(--et-gold))';
+  const etRed = 'hsl(var(--et-red))';
 
-  const reportsBySeverity = filteredReports.reduce(
-    (acc, report) => {
-      acc[report.aiSeverity] = (acc[report.aiSeverity] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-
-  const reportsByStatus = filteredReports.reduce(
-    (acc, report) => {
-      acc[report.status] = (acc[report.status] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-
-  const totalReports = filteredReports.length
-  const resolvedReports = reportsByStatus["Resolved"] || 0
-  const inProgressReports = reportsByStatus["In Progress"] || 0
-  const submittedReports = reportsByStatus["Submitted"] || 0
-
-  const allDepartments = Array.from(new Set(reports.map((r) => r.aiDepartment)))
-
-  const handleExport = (type: "excel" | "pdf") => {
-    alert(`Exporting ${type} for current filters... (This is a placeholder action)`)
-    // In a real app, trigger backend export
+  // Export helpers (PDF / Excel via existing API endpoints)
+  async function handleExport(type: 'pdf' | 'excel') {
+    try {
+      const endpoint = type === 'pdf' ? '/api/reports/export/pdf' : '/api/reports/export/excel';
+      const res = await fetch(endpoint, { method: 'GET', credentials: 'include' });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      a.href = url;
+      a.download = `reports-${ts}.${type === 'pdf' ? 'pdf' : 'csv'}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to export');
+    }
   }
 
+  // Charts only UI
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <div className="flex flex-wrap gap-2">
-          <Select value={timeframe} onValueChange={setTimeframe}>
+    <div>
+      <div className="grid gap-6">
+        <h2 className="text-2xl font-bold mb-2">Analytics Dashboard</h2>
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Department scope selector (visible if more than one department in data) */}
+          {/* Department scope selector removed for Department Admins (they see only their dept). System Admin keeps chartType selector only. */}
+          <Select value={chartType} onValueChange={setChartType}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Timeframe" />
+              <SelectValue placeholder="Chart Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-              <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+              <SelectItem value="bar">Bar Chart</SelectItem>
+              <SelectItem value="pie">Pie Chart</SelectItem>
+              <SelectItem value="line">Line Chart</SelectItem>
             </SelectContent>
           </Select>
-          <Select
-            value={isDepartmentAdmin && userDepartment ? userDepartment : departmentFilter}
-            onValueChange={setDepartmentFilter}
-            disabled={isDepartmentAdmin && !!userDepartment} // Disable if Department Admin
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Department" />
-            </SelectTrigger>
-            <SelectContent>
-              {isDepartmentAdmin && userDepartment ? (
-                <SelectItem value={userDepartment}>{userDepartment}</SelectItem>
-              ) : (
-                <>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {allDepartments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </>
-              )}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Open">Open</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Resolved">Resolved</SelectItem>
-              <SelectItem value="Reject">Reject</SelectItem>
-              <SelectItem value="On Hold">On Hold</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={() => handleExport("excel")} variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Export Excel
-          </Button>
-          <Button onClick={() => handleExport("pdf")} variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Export PDF
-          </Button>
+          <div className="flex gap-2 ml-auto">
+            <Button variant="outline" onClick={()=>handleExport('pdf')} className="flex items-center gap-2" title="Export PDF">
+              <FileDown className="w-4 h-4" /> PDF
+            </Button>
+            <Button variant="outline" onClick={()=>handleExport('excel')} className="flex items-center gap-2" title="Export Excel">
+              <FileSpreadsheet className="w-4 h-4" /> Excel
+            </Button>
+          </div>
+        </div>
+  {loadError && <div className="text-sm text-red-600">{loadError}</div>}
+  {loading && <div className="text-sm">Loading full dataset...</div>}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          {/* Only show Reports by Department for non-Department Admins */}
+          {!user || user.role !== "Department Admin" ? (
+            <div>
+              <h3 className="font-semibold mb-2">Reports by Department</h3>
+              {renderChart(chartType, departmentChartData, "count", "department", etGreen)}
+            </div>
+          ) : null}
+          <div>
+            <h3 className="font-semibold mb-2">Reports by Severity</h3>
+            {renderChart(chartType, severityChartData, "count", "severity", etRed)}
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Reports by Status</h3>
+            {renderChart(chartType, statusChartData, "count", "status", etGold)}
+          </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalReports}</div>
-            <p className="text-xs text-muted-foreground">
-              {resolvedReports} resolved, {inProgressReports} in progress
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved Reports</CardTitle>
-            <ListChecks className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{resolvedReports}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalReports > 0 ? ((resolvedReports / totalReports) * 100).toFixed(1) : 0}% of total
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
-            <ListChecks className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reportsBySeverity["Critical"] || 0}</div>
-            <p className="text-xs text-muted-foreground">Requiring immediate attention</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Only show Reports by Department for System Admin */}
-        {user?.role === "System Admin" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Reports by Department</CardTitle>
-              <CardDescription>Distribution of issues across departments.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[200px] flex items-center justify-center bg-muted rounded-md text-muted-foreground">
-                {Object.keys(reportsByDepartment).length > 0 ? (
-                  <div className="text-center">
-                    <p>Placeholder for a Bar Chart or Pie Chart showing:</p>
-                    <ul className="list-disc list-inside mt-2">
-                      {Object.entries(reportsByDepartment).map(([dept, count]) => (
-                        <li key={dept}>
-                          {dept}: {count}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  "No data for this filter."
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        <Card>
-          <CardHeader>
-            <CardTitle>Reports by Severity</CardTitle>
-            <CardDescription>Breakdown of issues by their severity level.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] flex items-center justify-center bg-muted rounded-md text-muted-foreground">
-              {Object.keys(reportsBySeverity).length > 0 ? (
-                <div className="text-center">
-                  <p>Placeholder for a Bar Chart or Pie Chart showing:</p>
-                  <ul className="list-disc list-inside mt-2">
-                    {Object.entries(reportsBySeverity).map(([sev, count]) => (
-                      <li key={sev}>
-                        {sev}: {count}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                "No data for this filter."
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Resolution Status Over Time</CardTitle>
-          <CardDescription>Trend of submitted, in-progress, and resolved reports.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[250px] flex items-center justify-center bg-muted rounded-md text-muted-foreground">
-            Placeholder for a Line Chart showing trends of Submitted, In Progress, and Resolved reports over time.
-          </div>
-        </CardContent>
-      </Card>
     </div>
-  )
+  );
 }
+
+export default AnalyticsSection;

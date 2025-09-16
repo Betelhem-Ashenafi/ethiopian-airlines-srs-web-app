@@ -1,0 +1,147 @@
+"use client"
+import { useState, useEffect } from "react"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button" // (button kept if needed for future actions)
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, LineChart, Line } from "recharts"
+import type { Report } from "@/lib/data"
+import ListChecks from "@/components/ListChecks"
+import ReportsTable from "@/components/reports-table"
+import { useAuth } from "@/components/auth-provider"
+import { fetchStatusDropdown, fetchDepartmentsDropdown, fetchSeveritiesDropdown } from "@/lib/dropdowns"
+// Accept reports as a prop for live data
+// If not provided, fallback to static
+type AnalyticsSectionProps = {
+  reports?: Report[];
+};
+function AnalyticsSection({ reports: externalReports }: AnalyticsSectionProps) {
+  // Chart type state only
+  const [chartType, setChartType] = useState("bar") // bar, pie, line
+  const reports = externalReports || [];
+
+  // Helpers to normalize labels (trim, collapse spaces, Title Case)
+  const titleCase = (s: string) => s.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const norm = (s: string | undefined) => titleCase((s || 'Unknown').replace(/\s+/g,' ').trim());
+
+  // Chart data prep with normalization so 'inprogress', 'In Progress', 'IN PROGRESS' unify
+  const reportsByDepartment = reports.reduce((acc, report) => {
+    const dept = norm(report.departmentName || report.aiDepartment);
+    acc[dept] = (acc[dept] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  const reportsBySeverity = reports.reduce((acc, report) => {
+    const sev = norm(report.aiSeverity as string);
+    acc[sev] = (acc[sev] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  const reportsByStatus = reports.reduce((acc, report) => {
+    const status = norm(report.statusName || report.status);
+    acc[status] = (acc[status] || 0) + 1; return acc;
+  }, {} as Record<string, number>);
+
+  // Chart rendering helper
+  function renderChart(type: string, data: any[], dataKey: string, labelKey: string, color: string) {
+    if (type === "bar") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data} margin={{ bottom: 60, left: 8, right: 8, top: 10 }}>
+            <XAxis
+              dataKey={labelKey}
+              interval={0}
+              minTickGap={0}
+              tick={{ fontSize: 11 }}
+              angle={-30}
+              textAnchor="end"
+              height={50}
+            />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey={dataKey} fill={color} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+    if (type === "pie") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie data={data} dataKey={dataKey} nameKey={labelKey} cx="50%" cy="50%" outerRadius={100} fill={color} label />
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      );
+    }
+    if (type === "line") {
+      return (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ bottom: 60, left: 8, right: 8, top: 10 }}>
+            <XAxis
+              dataKey={labelKey}
+              interval={0}
+              minTickGap={0}
+              tick={{ fontSize: 11 }}
+              angle={-30}
+              textAnchor="end"
+              height={50}
+            />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey={dataKey} stroke={color} />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
+  }
+
+  // Chart data arrays
+  const statusChartData = Object.entries(reportsByStatus).map(([status, count]) => ({ status, count }));
+  const departmentChartData = Object.entries(reportsByDepartment).map(([department, count]) => ({ department, count }));
+  const severityChartData = Object.entries(reportsBySeverity).map(([severity, count]) => ({ severity, count }));
+
+  // Brand colors
+  const etGreen = 'hsl(var(--et-green))';
+  const etGold = 'hsl(var(--et-gold))';
+  const etRed = 'hsl(var(--et-red))';
+
+  // Charts only UI
+  return (
+    <div>
+      <div className="grid gap-6">
+        <h2 className="text-2xl font-bold mb-2">Analytics Dashboard</h2>
+        <div className="flex flex-wrap gap-4 items-center">
+          <Select value={chartType} onValueChange={setChartType}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Chart Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bar">Bar Chart</SelectItem>
+              <SelectItem value="pie">Pie Chart</SelectItem>
+              <SelectItem value="line">Line Chart</SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Export buttons removed as requested */}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          <div>
+            <h3 className="font-semibold mb-2">Reports by Department</h3>
+            {renderChart(chartType, departmentChartData, "count", "department", etGreen)}
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Reports by Severity</h3>
+            {renderChart(chartType, severityChartData, "count", "severity", etRed)}
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Reports by Status</h3>
+            {renderChart(chartType, statusChartData, "count", "status", etGold)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AnalyticsSection;

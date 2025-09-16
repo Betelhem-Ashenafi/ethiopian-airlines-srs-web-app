@@ -1,0 +1,32 @@
+export async function fetchDepartmentsDropdown() {
+  const res = await fetch("/api/Department/active", { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch departments");
+  const response = await res.json();
+  // Assuming response.Data is an array of departments
+  return (response.Data || []).map((d: any) => ({
+    id: d.DepartmentID,
+    name: d.DepartmentName
+  }));
+}
+export async function fetchStatusDropdown() {
+  const res = await fetch("/api/Status", { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch statuses");
+  const response = await res.json();
+  // Assuming response.Data is an array of statuses
+  return (response.Data || []).map((s: any) => ({
+    id: s.StatusID,
+    name: s.StatusName
+  }));
+}
+// lib/dropdowns.ts
+
+export async function fetchSeveritiesDropdown() {
+  const res = await fetch("/api/Severity", { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch severities");
+  const response = await res.json();
+  // Use response.data (not Data) and map correct fields
+  return (response.data || []).map((s: any) => ({
+    id: s.severityID,
+    name: s.severityName
+  }));
+}
