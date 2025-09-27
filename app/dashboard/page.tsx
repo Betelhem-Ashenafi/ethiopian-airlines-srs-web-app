@@ -150,17 +150,8 @@ function DashboardPage() {
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-et-green md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b border-et-gold/50 px-4 lg:h-[60px] lg:px-6">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-              <span className="text-lg text-et-gold">Ethiopian Airlines</span>
-            </Link>
-          </div>
-          <div className="flex-1">
-            <SidebarNav />
-          </div>
-        </div>
+      <div className="hidden md:block">
+        <SidebarNav />
       </div>
       <div className="flex flex-col">
         <DashboardHeader />

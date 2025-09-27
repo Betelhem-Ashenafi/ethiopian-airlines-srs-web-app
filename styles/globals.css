@@ -47,9 +47,9 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
     /* Ethiopian Airlines Brand Colors */
-    --et-green: 97 61% 34%;   /* Example: Ethiopian green */
-    --et-gold: 45 90% 55%;    /* Example: Ethiopian gold */
-    --et-red: 0 85% 45%;      /* Example: Ethiopian red */
+    --et-green: 97 61% 34%;
+    --et-gold: 45 90% 55%;
+    --et-red: 0 85% 45%;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -93,9 +93,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
