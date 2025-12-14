@@ -96,44 +96,54 @@ function DashboardPage() {
       const dashboardInProgressReports = dashboardReports.filter((r: Report) => r.status === "In Progress").length;
       const dashboardCriticalReports = dashboardReports.filter((r: Report) => r.aiSeverity === "Critical").length;
       content = (
-        <div className="grid gap-6">
-          <h2 className="text-2xl font-bold">
-            Overview {isDepartmentAdmin && userDepartment ? `for ${userDepartment}` : ""}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-                <ListChecks className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-8">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-et-green to-et-green-dark bg-clip-text text-transparent">
+              Overview {isDepartmentAdmin && userDepartment ? `for ${userDepartment}` : ""}
+            </h2>
+            <p className="text-muted-foreground">Welcome back! Here's your dashboard summary.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:scale-105 transition-transform duration-300 border-l-4 border-l-et-green">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300">Total Reports</CardTitle>
+                <div className="p-2 bg-et-green/10 rounded-lg">
+                  <ListChecks className="h-5 w-5 text-et-green" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardTotalReports}</div>
+                <div className="text-3xl font-bold text-et-green mb-1">{dashboardTotalReports}</div>
+                <p className="text-xs text-muted-foreground">All time reports</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
-                <ListChecks className="h-4 w-4 text-red-500" />
+            <Card className="hover:scale-105 transition-transform duration-300 border-l-4 border-l-red-500">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300">Critical Issues</CardTitle>
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <ListChecks className="h-5 w-5 text-red-500" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardCriticalReports}</div>
+                <div className="text-3xl font-bold text-red-500 mb-1">{dashboardCriticalReports}</div>
                 <p className="text-xs text-muted-foreground">Requiring immediate attention</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+            <Card className="hover:scale-105 transition-transform duration-300 border-l-4 border-l-et-gold">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300">In Progress</CardTitle>
+                <div className="p-2 bg-et-gold/10 rounded-lg">
+                  <Users className="h-5 w-5 text-et-gold" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardInProgressReports}</div>
+                <div className="text-3xl font-bold text-et-gold mb-1">{dashboardInProgressReports}</div>
                 <p className="text-xs text-muted-foreground">Total reports in progress</p>
               </CardContent>
             </Card>
           </div>
-          <Card>
+          <Card className="border-t-4 border-t-et-gold">
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="text-xl font-bold">
                 Recent Reports {isDepartmentAdmin && userDepartment ? `for ${userDepartment}` : ""}
               </CardTitle>
             </CardHeader>
@@ -149,13 +159,13 @@ function DashboardPage() {
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900">
       <div className="hidden md:block">
         <SidebarNav />
       </div>
       <div className="flex flex-col">
         <DashboardHeader />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">{content}</main>
+        <main className="flex flex-1 flex-col gap-6 p-4 lg:gap-8 lg:p-8 animate-fade-in">{content}</main>
       </div>
     </div>
   )
