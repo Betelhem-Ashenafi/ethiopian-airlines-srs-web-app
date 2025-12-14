@@ -25,14 +25,18 @@ export default function DashboardHeader() {
   if (!user) return null
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b border-et-gold/50 bg-et-green px-4 lg:h-[60px] lg:px-6 dark:bg-neutral-900 dark:border-et-gold/50">
+    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-et-gold/30 bg-gradient-to-r from-et-green via-et-green to-et-green-dark px-4 backdrop-blur-sm shadow-lg lg:h-[70px] lg:px-8 dark:bg-gradient-to-r dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800 dark:border-et-gold/40">
       <div className="flex-1">
-        <h1 className="text-lg font-semibold md:text-xl text-et-gold">Defect Management Portal</h1>
+        <h1 className="text-xl font-bold md:text-2xl bg-gradient-to-r from-et-gold to-et-gold-light bg-clip-text text-transparent">
+          Defect Management Portal
+        </h1>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {/* Dark Mode Toggle Button */}
         <Button
-          className="rounded-full bg-et-gold text-et-green hover:bg-yellow-400"
+          variant="ghost"
+          size="icon"
+          className="rounded-full bg-et-gold/90 hover:bg-et-gold text-et-green h-10 w-10 transition-all duration-300 hover:scale-110 shadow-md"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle dark mode"
         >
@@ -43,25 +47,28 @@ export default function DashboardHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              className="rounded-full bg-et-gold text-et-green hover:bg-yellow-400"
+              variant="ghost"
+              className="rounded-full bg-et-gold/90 hover:bg-et-gold text-et-green h-10 w-10 p-0 transition-all duration-300 hover:scale-110 shadow-md"
             >
-              <Avatar>
+              <Avatar className="h-10 w-10 border-2 border-et-gold-light">
                 <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                <AvatarFallback>
+                <AvatarFallback className="bg-et-green text-et-gold font-semibold">
                   {user && user.fullName ? user.fullName.charAt(0).toUpperCase() : "?"}
                 </AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-xl border-et-gold/20 shadow-xl">
+            <DropdownMenuLabel className="font-semibold">
               {user.fullName}
               <br />
               <span className="font-normal text-muted-foreground text-sm">{user.role}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={logout} className="cursor-pointer hover:bg-et-gold/10 focus:bg-et-gold/10">
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
