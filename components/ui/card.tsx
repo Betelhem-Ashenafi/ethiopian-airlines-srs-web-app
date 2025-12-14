@@ -6,9 +6,11 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
-        // lighter black in dark mode + yellow border
-        "dark:bg-neutral-800 dark:border-et-gold",
+        "rounded-xl border bg-card text-card-foreground shadow-lg transition-all duration-300 hover:shadow-xl",
+        // Modern styling with Ethiopian Airlines colors
+        "border-gray-200/50 dark:border-et-gold/30",
+        "bg-white/95 backdrop-blur-sm dark:bg-neutral-800/95",
+        "hover:border-et-gold/30 dark:hover:border-et-gold/50",
         className
       )}
       {...props}
@@ -22,7 +24,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-2 p-6 border-b border-gray-100 dark:border-neutral-700", className)}
     {...props}
   />
 ))
