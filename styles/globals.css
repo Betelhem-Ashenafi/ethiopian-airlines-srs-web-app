@@ -2,12 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Removed Tailwind directives due to unknown at-rule error. 
-   Ensure Tailwind is installed and configured if you want to use these. */
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Modern glassmorphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Smooth gradient backgrounds */
+  .gradient-et {
+    background: linear-gradient(135deg, hsl(var(--et-green)) 0%, hsl(120 35% 45%) 100%);
+  }
+  
+  .gradient-et-gold {
+    background: linear-gradient(135deg, hsl(var(--et-gold)) 0%, hsl(45 100% 65%) 100%);
+  }
+  
+  /* Modern shadow effects */
+  .shadow-et {
+    box-shadow: 0 10px 40px -10px rgba(81, 120, 66, 0.3);
+  }
+  
+  .shadow-et-gold {
+    box-shadow: 0 10px 40px -10px rgba(255, 193, 7, 0.4);
   }
 }
 
@@ -37,7 +67,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -46,15 +76,19 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    /* Ethiopian Airlines Brand Colors */
-    --et-green: 97 61% 34%;
-    --et-gold: 45 90% 55%;
+    /* Ethiopian Airlines Brand Colors - Enhanced */
+    --et-green: 120 27% 37%; /* #517842 */
+    --et-green-light: 120 30% 45%;
+    --et-green-dark: 120 25% 30%;
+    --et-gold: 45 100% 53%; /* #FFC107 */
+    --et-gold-light: 45 100% 60%;
+    --et-gold-dark: 45 90% 45%;
     --et-red: 0 85% 45%;
   }
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -84,9 +118,13 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    /* Ethiopian Airlines Brand Colors */
-    --et-green: 97 61% 34%;
-    --et-gold: 45 90% 55%;
+    /* Ethiopian Airlines Brand Colors - Enhanced for dark mode */
+    --et-green: 120 27% 37%;
+    --et-green-light: 120 30% 45%;
+    --et-green-dark: 120 25% 30%;
+    --et-gold: 45 100% 53%;
+    --et-gold-light: 45 100% 60%;
+    --et-gold-dark: 45 90% 45%;
     --et-red: 0 85% 45%;
   }
 }
@@ -98,5 +136,11 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
   }
 }
