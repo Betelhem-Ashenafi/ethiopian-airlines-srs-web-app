@@ -25,9 +25,10 @@ export default function DashboardHeader() {
   if (!user) return null
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-et-gold/30 bg-gradient-to-r from-et-green via-et-green to-et-green-dark px-4 backdrop-blur-sm shadow-lg lg:h-[70px] lg:px-8 dark:bg-gradient-to-r dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800 dark:border-et-gold/40">
-      <div className="flex-1">
-        <h1 className="text-xl font-bold md:text-2xl bg-gradient-to-r from-et-gold to-et-gold-light bg-clip-text text-transparent">
+    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b-2 border-[#FFC107]/40 bg-gradient-to-r from-[#517842] via-[#517842] to-[#3d5a32] px-4 backdrop-blur-md shadow-xl lg:h-[70px] lg:px-8 dark:bg-gradient-to-r dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800 dark:border-[#FFC107]/50">
+      <div className="flex-1 flex items-center gap-3">
+        <div className="w-1 h-8 bg-[#FFC107] rounded-full shadow-lg"></div>
+        <h1 className="text-xl font-bold md:text-2xl text-[#FFC107] drop-shadow-lg">
           Defect Management Portal
         </h1>
       </div>
@@ -36,7 +37,7 @@ export default function DashboardHeader() {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-et-gold/90 hover:bg-et-gold text-et-green h-10 w-10 transition-all duration-300 hover:scale-110 shadow-md"
+          className="rounded-full bg-[#FFC107]/90 hover:bg-[#FFC107] text-[#517842] h-10 w-10 transition-all duration-300 hover:scale-110 shadow-md"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle dark mode"
         >
@@ -48,25 +49,25 @@ export default function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="rounded-full bg-et-gold/90 hover:bg-et-gold text-et-green h-10 w-10 p-0 transition-all duration-300 hover:scale-110 shadow-md"
+              className="rounded-full bg-[#FFC107]/90 hover:bg-[#FFC107] text-[#517842] h-10 w-10 p-0 transition-all duration-300 hover:scale-110 shadow-md"
             >
-              <Avatar className="h-10 w-10 border-2 border-et-gold-light">
+              <Avatar className="h-10 w-10 border-2 border-[#FFD54F]">
                 <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                <AvatarFallback className="bg-et-green text-et-gold font-semibold">
+                <AvatarFallback className="bg-[#517842] text-[#FFC107] font-semibold">
                   {user && user.fullName ? user.fullName.charAt(0).toUpperCase() : "?"}
                 </AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-xl border-et-gold/20 shadow-xl">
+          <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-xl border-[#FFC107]/20 shadow-xl">
             <DropdownMenuLabel className="font-semibold">
               {user.fullName}
               <br />
               <span className="font-normal text-muted-foreground text-sm">{user.role}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout} className="cursor-pointer hover:bg-et-gold/10 focus:bg-et-gold/10">
+            <DropdownMenuItem onClick={logout} className="cursor-pointer hover:bg-[#FFC107]/10 focus:bg-[#FFC107]/10">
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
