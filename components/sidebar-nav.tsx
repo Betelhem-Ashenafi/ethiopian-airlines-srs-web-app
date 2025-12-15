@@ -29,17 +29,18 @@ export default function SidebarNav() {
   return (
     <aside
       className="
-        w-64 shrink-0 border-r border-et-gold/30
-        bg-gradient-to-b from-et-green via-et-green to-et-green-dark text-white
+        w-64 shrink-0 border-r-2 border-[#FFC107]/40
+        bg-gradient-to-b from-[#517842] via-[#517842] to-[#3d5a32] text-white
         md:sticky md:top-0 md:h-[100dvh]
         min-h-screen flex flex-col shadow-xl
-        dark:bg-gradient-to-b dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800 dark:text-neutral-100 dark:border-et-gold/40
+        dark:bg-gradient-to-b dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800 dark:text-neutral-100 dark:border-[#FFC107]/50
       "
     >
-      {/* Brand bar */}
-      <div className="flex h-16 items-center border-b border-et-gold/30 px-4 lg:h-[70px] lg:px-6 bg-et-green-dark/30 backdrop-blur-sm">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold group">
-          <span className="text-xl bg-gradient-to-r from-et-gold to-et-gold-light bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
+      {/* Brand bar - elegant and visible */}
+      <div className="flex h-16 items-center border-b-2 border-[#FFC107]/40 px-4 lg:h-[70px] lg:px-6 bg-[#3d5a32]/50 backdrop-blur-md shadow-inner">
+        <Link href="/dashboard" className="flex items-center gap-3 font-bold group w-full">
+          <div className="w-1 h-8 bg-[#FFC107] rounded-full shadow-lg"></div>
+          <span className="text-lg md:text-xl text-[#FFC107] drop-shadow-lg group-hover:scale-105 transition-transform duration-300 font-semibold">
             Ethiopian Airlines
           </span>
         </Link>
@@ -57,22 +58,22 @@ export default function SidebarNav() {
                  href={item.href === "/dashboard" ? "/dashboard?tab=dashboard" : item.href}
                  className={cn(
                    "group flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-300 relative",
-                   // light mode
-                   "text-white/90 hover:text-white hover:bg-white/15",
+                   // light mode - ensure text is always visible
+                   "text-white hover:text-[#FFC107] hover:bg-white/20",
                    isActive 
-                     ? "bg-gradient-to-r from-et-gold/20 to-et-gold/10 text-et-gold border-l-4 border-et-gold shadow-lg backdrop-blur-sm" 
-                     : "border-l-4 border-transparent hover:border-et-gold/50 hover:shadow-md",
+                     ? "bg-gradient-to-r from-[#FFC107]/30 to-[#FFC107]/15 text-[#FFC107] border-l-4 border-[#FFC107] shadow-lg backdrop-blur-sm font-semibold" 
+                     : "border-l-4 border-transparent hover:border-[#FFC107]/60 hover:shadow-md",
                    // dark overrides
-                   "dark:text-neutral-200 dark:hover:bg-neutral-800/60",
-                   isActive && "dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-400"
+                   "dark:text-neutral-100 dark:hover:bg-neutral-800/60 dark:hover:text-yellow-300",
+                   isActive && "dark:bg-yellow-500/25 dark:text-yellow-300 dark:border-yellow-400"
                  )}
                >
                  <item.icon
                    className={cn(
                      "h-5 w-5 transition-transform duration-300",
                      isActive
-                       ? "text-et-gold dark:text-yellow-300 scale-110"
-                       : "text-white/70 group-hover:text-et-gold group-hover:scale-110 dark:text-neutral-400 dark:group-hover:text-yellow-300"
+                       ? "text-[#FFC107] dark:text-yellow-300 scale-110"
+                       : "text-white group-hover:text-[#FFC107] group-hover:scale-110 dark:text-neutral-200 dark:group-hover:text-yellow-300"
                    )}
                  />
                  <span className={cn(
@@ -82,7 +83,7 @@ export default function SidebarNav() {
                    {item.title}
                  </span>
                  {isActive && (
-                   <div className="absolute right-2 w-2 h-2 bg-et-gold rounded-full animate-pulse"></div>
+                   <div className="absolute right-2 w-2 h-2 bg-[#FFC107] rounded-full animate-pulse shadow-lg"></div>
                  )}
                </Link>
              )
